@@ -163,25 +163,3 @@
 .tg-join-btn:hover {
     background: #1B6DCD;
 }
-
-
-.history-box {
-    background: var(--bg);
-    padding: 10px;
-    border-radius: 8px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-.hist-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    padding: 5px 10px;
-    border-radius: 5px;
-    background: #111154;
-}
-.hist-item.completed .status-badge {
-    color: var(--success);
-    font-weight: bold;
-}
-
