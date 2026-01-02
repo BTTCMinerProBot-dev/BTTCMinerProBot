@@ -1,39 +1,4 @@
-
-function renderEarningsHistory() {
-    const el = document.getElementById('earnings-history');
-    el.innerHTML = '';
-    const sym = appState.config.currencySymbol || "TK";
-
-    if(!appState.user.history || appState.user.history.length === 0){
-        el.innerHTML = '<p style="text-align:center; color:#aaa;">No Earnings Yet</p>';
-        return;
-    }
-
-    // Reverse order: latest first
-    appState.user.history.slice().reverse().forEach(e => {
-        let typeName = '';
-        let badgeClass = '';
-
-        // Type mapping
-        if(e.type === 'dailyAd'){ typeName = 'Daily Ad'; badgeClass = 'completed'; }
-        else if(e.type === 'task'){ typeName = 'Special Task'; badgeClass = 'completed'; }
-        else if(e.type === 'referral'){ typeName = 'Referral Bonus'; badgeClass = 'completed'; }
-
-        const html = `
-        <div class="hist-item ${badgeClass}">
-            <div>
-                <strong>${typeName}</strong><br>
-                <small>${new Date(e.ts).toLocaleString()}</small>
-            </div>
-            <div>
-                <span class="status-badge">+${e.amount} ${sym}</span>
-            </div>
-        </div>`;
-        el.innerHTML += html;
-    });
-}
-
- // CONFIG: CLOUDFLARE WORKER URL
+// CONFIG: CLOUDFLARE WORKER URL
         // এখানে আপনার ওয়ার্কারের লিংক বসান (যেমন: https://wallet-api.yourname.workers.dev)
         const API_URL = "https://bttcminerpro.nlnahid2020.workers.dev"; 
 
