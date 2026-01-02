@@ -1,5 +1,3 @@
-function hideAdWarning() {
-    document.getElementById('ad-warning').style.display = 'none';
 
 function renderEarningsHistory() {
     const el = document.getElementById('earnings-history');
