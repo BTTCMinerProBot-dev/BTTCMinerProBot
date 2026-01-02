@@ -1,3 +1,65 @@
+// --- LOCAL STATE ---
+let appState = { 
+    user: { balance:0, totalEarned:0, referrals:0, dailyAds:{}, taskHistory:{} },
+    config:{}, leaderboard:[], history:[]
+};
+
+// --- HIDE AD WARNING ---
+function hideAdWarning() {
+    const el = document.getElementById('ad-warning');
+    if(el) el.style.display = 'none';
+}
+
+// --- RENDER EARNINGS HISTORY ---
+function renderEarningsHistory() {
+    const el = document.getElementById('earnings-history');
+    if(!el) return;
+
+    el.innerHTML = '';
+    const sym = appState.config.currencySymbol || "TK";
+
+    if(!appState.user.history || appState.user.history.length===0){
+        el.innerHTML = '<p style="text-align:center; color:#aaa;">No Earnings Yet</p>';
+        return;
+    }
+
+    appState.user.history.slice().reverse().forEach(e => {
+        let typeName = '';
+        let badgeClass = '';
+
+        if(e.type === 'dailyAd'){ typeName='Daily Ad'; badgeClass='completed'; }
+        else if(e.type === 'task'){ typeName='Special Task'; badgeClass='completed'; }
+        else if(e.type === 'referral'){ typeName='Referral Bonus'; badgeClass='completed'; }
+
+        el.innerHTML += `
+        <div class="hist-item ${badgeClass}">
+            <div>
+                <strong>${typeName}</strong><br>
+                <small>${new Date(e.ts).toLocaleString()}</small>
+            </div>
+            <div>
+                <span class="status-badge">+${e.amount} ${sym}</span>
+            </div>
+        </div>`;
+    });
+}
+
+// --- WINDOW ONLOAD ---
+window.addEventListener('DOMContentLoaded', async () => {
+    const tg = window.Telegram.WebApp;
+    tg.ready(); tg.expand();
+
+    const tgUser = tg.initDataUnsafe.user;
+    document.getElementById('u-name').innerText = tgUser.first_name;
+    document.getElementById('u-id').innerText = `ID: ${tgUser.id}`;
+    if(tgUser.photo_url) document.getElementById('u-img').src = tgUser.photo_url;
+
+    const cached = localStorage.getItem(`app_${tgUser.id}`);
+    if(cached) appState = JSON.parse(cached);
+
+    renderAll();
+});
+
 // CONFIG: CLOUDFLARE WORKER URL
         // এখানে আপনার ওয়ার্কারের লিংক বসান (যেমন: https://wallet-api.yourname.workers.dev)
         const API_URL = "https://bttcminerpro.nlnahid2020.workers.dev"; 
