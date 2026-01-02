@@ -1,65 +1,3 @@
-// --- LOCAL STATE ---
-let appState = { 
-    user: { balance:0, totalEarned:0, referrals:0, dailyAds:{}, taskHistory:{} },
-    config:{}, leaderboard:[], history:[]
-};
-
-// --- HIDE AD WARNING ---
-function hideAdWarning() {
-    const el = document.getElementById('ad-warning');
-    if(el) el.style.display = 'none';
-}
-
-// --- RENDER EARNINGS HISTORY ---
-function renderEarningsHistory() {
-    const el = document.getElementById('earnings-history');
-    if(!el) return;
-
-    el.innerHTML = '';
-    const sym = appState.config.currencySymbol || "TK";
-
-    if(!appState.user.history || appState.user.history.length===0){
-        el.innerHTML = '<p style="text-align:center; color:#aaa;">No Earnings Yet</p>';
-        return;
-    }
-
-    appState.user.history.slice().reverse().forEach(e => {
-        let typeName = '';
-        let badgeClass = '';
-
-        if(e.type === 'dailyAd'){ typeName='Daily Ad'; badgeClass='completed'; }
-        else if(e.type === 'task'){ typeName='Special Task'; badgeClass='completed'; }
-        else if(e.type === 'referral'){ typeName='Referral Bonus'; badgeClass='completed'; }
-
-        el.innerHTML += `
-        <div class="hist-item ${badgeClass}">
-            <div>
-                <strong>${typeName}</strong><br>
-                <small>${new Date(e.ts).toLocaleString()}</small>
-            </div>
-            <div>
-                <span class="status-badge">+${e.amount} ${sym}</span>
-            </div>
-        </div>`;
-    });
-}
-
-// --- WINDOW ONLOAD ---
-window.addEventListener('DOMContentLoaded', async () => {
-    const tg = window.Telegram.WebApp;
-    tg.ready(); tg.expand();
-
-    const tgUser = tg.initDataUnsafe.user;
-    document.getElementById('u-name').innerText = tgUser.first_name;
-    document.getElementById('u-id').innerText = `ID: ${tgUser.id}`;
-    if(tgUser.photo_url) document.getElementById('u-img').src = tgUser.photo_url;
-
-    const cached = localStorage.getItem(`app_${tgUser.id}`);
-    if(cached) appState = JSON.parse(cached);
-
-    renderAll();
-});
-
 // CONFIG: CLOUDFLARE WORKER URL
         // এখানে আপনার ওয়ার্কারের লিংক বসান (যেমন: https://wallet-api.yourname.workers.dev)
         const API_URL = "https://bttcminerpro.nlnahid2020.workers.dev"; 
@@ -217,29 +155,19 @@ appState.user.totalEarned += r;
 if(!appState.user.dailyAds) appState.user.dailyAds = {};
 appState.user.dailyAds[id] = (appState.user.dailyAds[id] || 0) + 1;
 
-// ✅ Updated Earnings record function with referral support and server sync
-async function addEarning(type, amount, refAmount=0) {
+// ✅ Earnings record add function
+function addEarning(type, amount) {
     if(!appState.user.history) appState.user.history = [];
 
-    // Main earning
+    // নতুন earning push করা
     appState.user.history.push({ type: type, amount: amount, ts: Date.now() });
 
-    // Add referral earning if any
-    if(refAmount > 0){
-        appState.user.history.push({ type: 'referral', amount: refAmount, ts: Date.now() });
-        appState.user.balance += refAmount;      // Ref bonus added to balance
-        appState.user.totalEarned += refAmount;  // Ref bonus counted in total earned
-    }
+    // শুধু last 24 hours history রাখবে
+    const oneDayAgo = Date.now() - 24*60*60*1000;
+    appState.user.history = appState.user.history.filter(e => e.ts >= oneDayAgo);
 
-    appState.user.balance += amount;
-    appState.user.totalEarned += amount;
-
-    saveLocal();             // Save locally
-    renderEarningsHistory(); // Update UI
-    renderAll();             // Optional: if you have a full render
-
-    // Server Sync
-    await api('updateBalance', 'POST', { id: appState.user.id, amount: amount, refAmount: refAmount });
+    saveLocal(); // localStorage update
+    renderEarningsHistory(); // UI update
 }
 
 // Add daily ad earning
@@ -408,3 +336,4 @@ appState.user.history.push({ type: 'task', amount: t.reward, ts: Date.now() });
         function shareTg() { const link = document.getElementById('ref-link').value; tg.openTelegramLink(`https://t.me/share/url?url=${link}&text=Join and Earn!`); }
         function openSupport() { if(appState.config.supportLink) tg.openLink(appState.config.supportLink); else toast("No Support Link"); }
         function toast(m) { const t = document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+    
